@@ -208,6 +208,7 @@ Set MODE-LINE-NAME to override the mode line name."
         `(define-derived-mode ,(shell-maker-major-mode config) comint-mode
            ,(or mode-line-name (shell-maker-config-name config))
            ,(format "Major mode for %s shell." (shell-maker-config-name config))
+           (keymap-set shell-maker-mode-map "<remap> <comint-delchar-or-maybe-eof>" #'delete-char)
            (keymap-set shell-maker-mode-map "<remap> <comint-send-input>" #'shell-maker-submit)
            (keymap-set shell-maker-mode-map "<remap> <comint-interrupt-subjob>" #'shell-maker-interrupt)
            (keymap-set shell-maker-mode-map "<remap> <comint-history-isearch-backward-regexp>" #'shell-maker-search-history))))
