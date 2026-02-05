@@ -620,7 +620,7 @@ Use START END TEXT-START TEXT-END."
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward
-              "`\\([^`]+\\)`"
+              "`\\([^`\n]+\\)`"
               nil t)
         (if-let ((begin (match-beginning 0))
                  (end (match-end 0))
