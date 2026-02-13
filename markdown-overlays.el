@@ -87,7 +87,8 @@ Objective-C -> (\"objective-c\" . \"objc\")"
   "Put all Markdown overlays."
   (let* ((source-blocks (markdown-overlays--source-blocks))
          (source-block-ranges (seq-map (lambda (block)
-                                  (map-elt block 'body))
+                                  (cons (car (map-elt block 'start))
+                                        (cdr (map-elt block 'end))))
                                 source-blocks))
          (inline-codes (markdown-overlays--markdown-inline-codes source-block-ranges))
          (inline-code-ranges (seq-map (lambda (inline)
@@ -626,10 +627,12 @@ Use START END TEXT-START TEXT-END."
                  (end (match-end 0))
                  (body-start (match-beginning 1))
                  (body-end (match-end 1)))
-            (unless (seq-find (lambda (avoided)
-                                (and (>= begin (car avoided))
-                                     (<= end (cdr avoided))))
-                              avoid-ranges)
+            (if-let ((avoided (seq-find (lambda (avoided)
+                                          (not (or (> begin (cdr avoided))
+                                                   (< end (car avoided)))))
+                                        avoid-ranges)))
+                ;; Match overlaps an avoid range — skip past it and retry
+                (goto-char (1+ (cdr avoided)))
               (push
                (list
                 'body (cons body-start body-end)) codes))
