@@ -1004,6 +1004,7 @@ URL-START and URL-END delimit the image URL."
               ((display-graphic-p))
               (image (create-image path nil nil
                                    :max-width (markdown-overlays--image-max-width))))
+    (image-flush image)
     (markdown-overlays--put
      (make-overlay start end)
      'evaporate t
@@ -1021,6 +1022,7 @@ PATH-START and PATH-END delimit the path text."
               ((display-graphic-p))
               (image (create-image path nil nil
                                    :max-width (markdown-overlays--image-max-width))))
+    (image-flush image)
     (markdown-overlays--put
      (make-overlay start end)
      'evaporate t
