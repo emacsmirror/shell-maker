@@ -189,6 +189,17 @@
                        (concat "file:" png))
                       (expand-file-name png)))))
 
+(ert-deftest markdown-overlays-parse-local-link-test-plain-path ()
+  "Parse a plain existing path as a local file link."
+  (let ((png (markdown-overlays-images-tests--setup)))
+    (should (equal (markdown-overlays--parse-local-link png)
+                   (list (cons :file (expand-file-name png))
+                         (cons :line nil))))))
+
+(ert-deftest markdown-overlays-parse-local-link-test-empty-string ()
+  "Do not treat an empty string as a local file link."
+  (should-not (markdown-overlays--parse-local-link "")))
+
 (ert-deftest markdown-overlays-resolve-test-tilde ()
   "Resolve a ~/ path."
   (let* ((home (expand-file-name "~"))
