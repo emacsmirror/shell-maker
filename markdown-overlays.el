@@ -834,6 +834,7 @@ Return alist with :file and :line if URL points to an existing file.
 For example:
 
   \"foo.el#L10\"              => ((:file . \"/abs/foo.el\") (:line . 10))
+  \"foo.el\"                  => ((:file . \"/abs/foo.el\") (:line . nil))
   \"file:src/bar.el:5\"       => ((:file . \"/abs/src/bar.el\") (:line . 5))
   \"file:///tmp/baz.el#L20\"  => ((:file . \"/tmp/baz.el\") (:line . 20))
   \"file:///tmp/baz.el\"      => ((:file . \"/tmp/baz.el\") (:line . nil))
@@ -863,7 +864,8 @@ For example:
                ;; path#L123 (GitHub-style line)
                ((string-match
                  (rx bos
-                     (group (one-or-more (not (any ":#"))))
+                     (group (? (optional "/") alpha ":/") ;; Windows drive letter
+                            (one-or-more (not (any ":#"))))
                      "#L" (group (one-or-more digit))
                      eos)
                  url)
@@ -871,11 +873,15 @@ For example:
                ;; path:123 (colon line number)
                ((string-match
                  (rx bos
-                     (group (one-or-more (not (any ":#"))))
+                     (group (? (optional "/") alpha ":/") ;; Windows drive letter
+                            (one-or-more (not (any ":#"))))
                      ":" (group (one-or-more digit))
                      eos)
                  url)
-                (cons (match-string 1 url) (match-string 2 url)))))
+                (cons (match-string 1 url) (match-string 2 url)))
+               ;; plain local path with no line suffix
+               ((not (string-empty-p url))
+                (cons url nil))))
              (filepath (expand-file-name (car match))))
     (when (file-exists-p filepath)
       (list (cons :file filepath)

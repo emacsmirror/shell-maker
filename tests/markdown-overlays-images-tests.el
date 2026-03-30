@@ -3,6 +3,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'cl-lib)
 (require 'markdown-overlays)
 
 ;;; Helpers
@@ -188,6 +189,44 @@
     (should (string= (markdown-overlays--resolve-image-url
                        (concat "file:" png))
                       (expand-file-name png)))))
+
+(ert-deftest markdown-overlays-parse-local-link-test-plain-path ()
+  "Parse a plain existing path as a local file link."
+  (let ((png (markdown-overlays-images-tests--setup)))
+    (should (equal (markdown-overlays--parse-local-link png)
+                   (list (cons :file (expand-file-name png))
+                         (cons :line nil))))))
+
+(ert-deftest markdown-overlays-parse-local-link-test-empty-string ()
+  "Do not treat an empty string as a local file link."
+  (should-not (markdown-overlays--parse-local-link "")))
+
+(ert-deftest markdown-overlays-parse-local-link-test-windows-path-leading-slash-hash-line ()
+  "Parse /d:/...#L61 as a local file link with line number."
+  (let ((url "/d:/dev/example.java#L61"))
+    (cl-letf (((symbol-function 'file-exists-p) (lambda (_) t)))
+      (should (equal (markdown-overlays--parse-local-link url)
+                     (list (cons :file
+                                 (expand-file-name "/d:/dev/example.java"))
+                           (cons :line 61)))))))
+
+(ert-deftest markdown-overlays-parse-local-link-test-windows-path-leading-slash-colon-line ()
+  "Parse /d:/...:61 as a local file link with line number."
+  (let ((url "/d:/dev/example.java:61"))
+    (cl-letf (((symbol-function 'file-exists-p) (lambda (_) t)))
+      (should (equal (markdown-overlays--parse-local-link url)
+                     (list (cons :file
+                                 (expand-file-name "/d:/dev/example.java"))
+                           (cons :line 61)))))))
+
+(ert-deftest markdown-overlays-parse-local-link-test-windows-path-hash-line ()
+  "Parse d:/...#L61 as a local file link with line number."
+  (let ((url "d:/dev/example.java#L61"))
+    (cl-letf (((symbol-function 'file-exists-p) (lambda (_) t)))
+      (should (equal (markdown-overlays--parse-local-link url)
+                     (list (cons :file
+                                 (expand-file-name "d:/dev/example.java"))
+                           (cons :line 61)))))))
 
 (ert-deftest markdown-overlays-resolve-test-tilde ()
   "Resolve a ~/ path."
