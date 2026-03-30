@@ -864,7 +864,8 @@ For example:
                ;; path#L123 (GitHub-style line)
                ((string-match
                  (rx bos
-                     (group (one-or-more (not (any ":#"))))
+                     (group (? (optional "/") alpha ":/") ;; Windows drive letter
+                            (one-or-more (not (any ":#"))))
                      "#L" (group (one-or-more digit))
                      eos)
                  url)
@@ -872,7 +873,8 @@ For example:
                ;; path:123 (colon line number)
                ((string-match
                  (rx bos
-                     (group (one-or-more (not (any ":#"))))
+                     (group (? (optional "/") alpha ":/") ;; Windows drive letter
+                            (one-or-more (not (any ":#"))))
                      ":" (group (one-or-more digit))
                      eos)
                  url)

@@ -3,6 +3,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'cl-lib)
 (require 'markdown-overlays)
 
 ;;; Helpers
@@ -199,6 +200,33 @@
 (ert-deftest markdown-overlays-parse-local-link-test-empty-string ()
   "Do not treat an empty string as a local file link."
   (should-not (markdown-overlays--parse-local-link "")))
+
+(ert-deftest markdown-overlays-parse-local-link-test-windows-path-leading-slash-hash-line ()
+  "Parse /d:/...#L61 as a local file link with line number."
+  (let ((url "/d:/dev/example.java#L61"))
+    (cl-letf (((symbol-function 'file-exists-p) (lambda (_) t)))
+      (should (equal (markdown-overlays--parse-local-link url)
+                     (list (cons :file
+                                 (expand-file-name "/d:/dev/example.java"))
+                           (cons :line 61)))))))
+
+(ert-deftest markdown-overlays-parse-local-link-test-windows-path-leading-slash-colon-line ()
+  "Parse /d:/...:61 as a local file link with line number."
+  (let ((url "/d:/dev/example.java:61"))
+    (cl-letf (((symbol-function 'file-exists-p) (lambda (_) t)))
+      (should (equal (markdown-overlays--parse-local-link url)
+                     (list (cons :file
+                                 (expand-file-name "/d:/dev/example.java"))
+                           (cons :line 61)))))))
+
+(ert-deftest markdown-overlays-parse-local-link-test-windows-path-hash-line ()
+  "Parse d:/...#L61 as a local file link with line number."
+  (let ((url "d:/dev/example.java#L61"))
+    (cl-letf (((symbol-function 'file-exists-p) (lambda (_) t)))
+      (should (equal (markdown-overlays--parse-local-link url)
+                     (list (cons :file
+                                 (expand-file-name "d:/dev/example.java"))
+                           (cons :line 61)))))))
 
 (ert-deftest markdown-overlays-resolve-test-tilde ()
   "Resolve a ~/ path."
