@@ -1480,7 +1480,16 @@ short of point-max at a trailing-newline end-of-buffer, silently
 disarming auto-scroll while the user is in fact at the bottom."
   (and (eobp)
        (cl-every (lambda (window)
-                   (pos-visible-in-window-p (point-max) window))
+                   ;; Asked while narrowed, `pos-visible-in-window-p' can
+                   ;; signal `args-out-of-range': the window still shows the
+                   ;; whole buffer, so it answers about a position the
+                   ;; restriction puts out of reach.  A caller rendering
+                   ;; above the prompt narrows exactly that way, and the
+                   ;; signal would escape into whatever it was doing.  Read
+                   ;; a failure as not-visible, leaving point where the user
+                   ;; put it rather than snapping to the bottom.
+                   (ignore-errors
+                     (pos-visible-in-window-p (point-max) window)))
                  (get-buffer-window-list nil 'no-mini))))
 
 (defmacro shell-maker-with-auto-scroll-edit (&rest body)
